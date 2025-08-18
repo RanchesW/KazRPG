@@ -1,0 +1,181 @@
+// KazRPG - Prisma Schema для локальной разработки
+// Файл: prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  username      String   @unique
+  firstName     String
+  lastName      String
+  avatar        String?
+  bio           String?
+  
+  // Kazakhstan-specific
+  city          String?   // Алматы, Астана, etc.
+  timezone      String   @default("Asia/Almaty")
+  language      Language @default(RU)
+  
+  // Gaming profile
+  isGM          Boolean  @default(false)
+  isVerified    Boolean  @default(false)
+  experience    Experience @default(BEGINNER)
+  
+  // Reputation
+  rating        Float    @default(0)
+  reviewCount   Int      @default(0)
+  
+  // Auth
+  hashedPassword String
+  emailVerified  Boolean  @default(false)
+  
+  // Timestamps
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  hostedGames   Game[]       @relation("GameMaster")
+  bookings      Booking[]
+  reviews       Review[]     @relation("ReviewAuthor")
+  receivedReviews Review[]   @relation("ReviewTarget")
+  
+  @@map("users")
+}
+
+model Game {
+  id              String      @id @default(cuid())
+  title           String
+  description     String      @db.Text
+  
+  // Game details
+  gameSystem      GameSystem
+  platform        Platform?
+  maxPlayers      Int
+  currentPlayers  Int         @default(0)
+  pricePerSession Int?        // в тенге
+  duration        Int?        // в минутах
+  difficulty      Difficulty
+  tags            String[]
+  imageUrl        String?
+  
+  // Location
+  isOnline        Boolean     @default(true)
+  city            String?
+  address         String?
+  
+  // Scheduling
+  startDate       DateTime
+  endDate         DateTime?
+  isRecurring     Boolean     @default(false)
+  
+  // Settings
+  language        Language    @default(RU)
+  isActive        Boolean     @default(true)
+  
+  // Relations
+  gmId            String
+  gm              User        @relation("GameMaster", fields: [gmId], references: [id])
+  bookings        Booking[]
+  reviews         Review[]
+  
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  @@map("games")
+}
+
+model Booking {
+  id          String        @id @default(cuid())
+  status      BookingStatus @default(PENDING)
+  playerCount Int           @default(1)
+  message     String?
+  totalPrice  Int?
+  
+  // Relations
+  userId      String
+  user        User          @relation(fields: [userId], references: [id])
+  gameId      String
+  game        Game          @relation(fields: [gameId], references: [id])
+  
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  @@unique([userId, gameId])
+  @@map("bookings")
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  rating    Int      // 1-5
+  comment   String?
+  
+  // Relations
+  authorId  String
+  author    User     @relation("ReviewAuthor", fields: [authorId], references: [id])
+  targetId  String
+  target    User     @relation("ReviewTarget", fields: [targetId], references: [id])
+  gameId    String
+  game      Game     @relation(fields: [gameId], references: [id])
+  
+  createdAt DateTime @default(now())
+  
+  @@unique([authorId, targetId, gameId])
+  @@map("reviews")
+}
+
+// Enums
+enum Language {
+  EN
+  RU
+  KK
+}
+
+enum Experience {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+}
+
+enum GameSystem {
+  DND5E
+  PATHFINDER2E
+  CALL_OF_CTHULHU
+  VAMPIRE
+  SHADOWRUN
+  CYBERPUNK
+  WARHAMMER40K
+  OTHER
+}
+
+enum Platform {
+  ROLL20
+  FOUNDRY
+  DISCORD
+  ZOOM
+  TELEGRAM
+  IN_PERSON
+  OTHER
+}
+
+enum Difficulty {
+  BEGINNER_FRIENDLY
+  INTERMEDIATE
+  ADVANCED
+  EXPERT_ONLY
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
