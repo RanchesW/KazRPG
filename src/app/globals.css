@@ -25,4 +25,97 @@
   .input-focus {
     @apply focus:border-purple-500 focus:ring-1 focus:ring-purple-500;
   }
+
+  /* Toast animations */
+  .animate-enter {
+    animation: enter 0.3s ease-out;
+  }
+
+  .animate-leave {
+    animation: leave 0.3s ease-in forwards;
+  }
+
+  @keyframes enter {
+    from {
+      opacity: 0;
+      transform: translateX(100%);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes leave {
+    from {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateX(100%);
+    }
+  }
+
+  /* Custom scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-slate-800;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-purple-600 rounded-full;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-purple-500;
+  }
+
+  /* Loading states */
+  .loading-pulse {
+    animation: loading-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes loading-pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+
+  /* Image optimization */
+  .next-image {
+    @apply transition-opacity duration-300;
+  }
+
+  .next-image[data-loaded="false"] {
+    @apply opacity-0;
+  }
+
+  .next-image[data-loaded="true"] {
+    @apply opacity-100;
+  }
+}
+
+/* Performance optimizations */
+.will-change-transform {
+  will-change: transform;
+}
+
+.will-change-scroll {
+  will-change: scroll-position;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

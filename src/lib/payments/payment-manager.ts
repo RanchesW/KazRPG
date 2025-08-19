@@ -1,0 +1,279 @@
+// ===== src/lib/payments/payment-manager.ts =====
+import { nanoid } from 'nanoid'
+import { paymentService } from './kazkom'
+import { emailService } from '@/lib/email'
+import { wsManager } from '@/lib/websocket/server'
+
+interface CreatePaymentParams {
+  userId: string
+  gameId: string
+  amount: number
+  description: string
+  userEmail: string
+}
+
+export class PaymentManager {
+  async createGamePayment(params: CreatePaymentParams) {
+    const orderId = `game_${params.gameId}_${nanoid()}`
+    
+    try {
+      // Create payment record in database
+      const payment = await prisma.payment.create({
+        data: {
+          id: orderId,
+          userId: params.userId,
+          gameId: params.gameId,
+          amount: params.amount,
+          currency: 'KZT',
+          status: 'PENDING',
+          description: params.description,
+          provider: 'KAZKOM',
+        }
+      })
+
+      // Create payment with Kazkom
+      const paymentResult = await paymentService.createPayment({
+        amount: params.amount,
+        currency: 'KZT',
+        orderId,
+        description: params.description,
+        returnUrl: `${env.APP_URL}/payment/success?orderId=${orderId}`,
+        failUrl: `${env.APP_URL}/payment/failure?orderId=${orderId}`,
+        language: 'ru',
+        email: params.userEmail,
+      })
+
+      if (paymentResult.success) {
+        // Update payment with external ID
+        await prisma.payment.update({
+          where: { id: orderId },
+          data: {
+            externalId: paymentResult.formData?.orderId,
+            paymentUrl: paymentResult.paymentUrl,
+          }
+        })
+
+        structuredLogger.userAction('payment-created', params.userId, {
+          gameId: params.gameId,
+          amount: params.amount,
+          orderId
+        })
+
+        return {
+          success: true,
+          paymentUrl: paymentResult.paymentUrl,
+          orderId
+        }
+      } else {
+        // Mark payment as failed
+        await prisma.payment.update({
+          where: { id: orderId },
+          data: { 
+            status: 'FAILED',
+            errorMessage: paymentResult.error 
+          }
+        })
+
+        return {
+          success: false,
+          error: paymentResult.error
+        }
+      }
+    } catch (error) {
+      structuredLogger.error('Payment creation error', error as Error, params)
+      return {
+        success: false,
+        error: 'Failed to create payment'
+      }
+    }
+  }
+
+  async handlePaymentCallback(orderId: string) {
+    try {
+      const payment = await prisma.payment.findUnique({
+        where: { id: orderId },
+        include: {
+          user: true,
+          game: {
+            include: {
+              gm: true
+            }
+          }
+        }
+      })
+
+      if (!payment) {
+        throw new Error('Payment not found')
+      }
+
+      // Verify payment status with Kazkom
+      const verification = await paymentService.verifyPayment(payment.externalId!)
+      
+      if (verification.success && verification.status === 'PAID') {
+        // Update payment status
+        await prisma.payment.update({
+          where: { id: orderId },
+          data: {
+            status: 'COMPLETED',
+            completedAt: new Date(),
+            verificationData: verification,
+          }
+        })
+
+        // Create confirmed booking
+        await prisma.booking.create({
+          data: {
+            userId: payment.userId,
+            gameId: payment.gameId,
+            status: 'CONFIRMED',
+            playerCount: 1,
+            totalPrice: payment.amount,
+            paymentId: payment.id,
+          }
+        })
+
+        // Update game player count
+        await prisma.game.update({
+          where: { id: payment.gameId },
+          data: {
+            currentPlayers: {
+              increment: 1
+            }
+          }
+        })
+
+        // Send confirmation emails
+        await Promise.all([
+          emailService.sendGameConfirmationEmail(
+            payment.user.email,
+            `${payment.user.firstName} ${payment.user.lastName}`,
+            payment.game.title,
+            payment.game.startDate,
+            `${payment.game.gm.firstName} ${payment.game.gm.lastName}`
+          ),
+          emailService.sendEmail({
+            to: payment.game.gm.email,
+            subject: `Новый игрок в "${payment.game.title}"`,
+            html: `
+              <p>В вашу игру "${payment.game.title}" записался новый игрок:</p>
+              <p><strong>${payment.user.firstName} ${payment.user.lastName}</strong></p>
+              <p>Email: ${payment.user.email}</p>
+              <p>Оплата: ${payment.amount} ₸</p>
+            `
+          })
+        ])
+
+        // Send real-time notifications
+        wsManager.notifyUserBookingConfirmed(payment.userId, {
+          gameId: payment.gameId,
+          gameTitle: payment.game.title,
+          amount: payment.amount
+        })
+
+        wsManager.notifyGameUpdate(payment.gameId, {
+          type: 'new_player',
+          playerCount: payment.game.currentPlayers + 1
+        })
+
+        structuredLogger.userAction('payment-completed', payment.userId, {
+          gameId: payment.gameId,
+          amount: payment.amount,
+          orderId
+        })
+
+        return { success: true, status: 'COMPLETED' }
+      } else {
+        // Update payment as failed
+        await prisma.payment.update({
+          where: { id: orderId },
+          data: {
+            status: verification.status,
+            errorMessage: verification.error,
+          }
+        })
+
+        return { success: false, status: verification.status }
+      }
+    } catch (error) {
+      structuredLogger.error('Payment callback error', error as Error, { orderId })
+      return { success: false, error: 'Callback processing failed' }
+    }
+  }
+
+  async processRefund(paymentId: string, reason: string) {
+    try {
+      const payment = await prisma.payment.findUnique({
+        where: { id: paymentId },
+        include: {
+          booking: true,
+          user: true,
+          game: true
+        }
+      })
+
+      if (!payment || payment.status !== 'COMPLETED') {
+        throw new Error('Payment not found or not completed')
+      }
+
+      // Process refund with Kazkom
+      const refundResult = await paymentService.refundPayment(
+        payment.externalId!,
+        payment.amount
+      )
+
+      if (refundResult.success) {
+        // Update payment and booking
+        await Promise.all([
+          prisma.payment.update({
+            where: { id: paymentId },
+            data: {
+              status: 'REFUNDED',
+              refundedAt: new Date(),
+              refundReason: reason,
+              refundId: refundResult.refundId,
+            }
+          }),
+          prisma.booking.update({
+            where: { paymentId },
+            data: { status: 'CANCELLED' }
+          }),
+          prisma.game.update({
+            where: { id: payment.gameId },
+            data: {
+              currentPlayers: {
+                decrement: 1
+              }
+            }
+          })
+        ])
+
+        // Send refund notification email
+        await emailService.sendEmail({
+          to: payment.user.email,
+          subject: 'Возврат средств - KazRPG',
+          html: `
+            <p>Ваш платеж за игру "${payment.game.title}" был возвращен.</p>
+            <p>Сумма возврата: ${payment.amount} ₸</p>
+            <p>Причина: ${reason}</p>
+            <p>Средства поступят на ваш счет в течение 5-10 рабочих дней.</p>
+          `
+        })
+
+        structuredLogger.userAction('payment-refunded', payment.userId, {
+          gameId: payment.gameId,
+          amount: payment.amount,
+          reason
+        })
+
+        return { success: true }
+      } else {
+        throw new Error(refundResult.error || 'Refund failed')
+      }
+    } catch (error) {
+      structuredLogger.error('Refund processing error', error as Error, { paymentId, reason })
+      return { success: false, error: error instanceof Error ? error.message : 'Refund failed' }
+    }
+  }
+}
+
+export const paymentManager = new PaymentManager()
