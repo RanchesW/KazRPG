@@ -57,7 +57,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     take: 1000, // Limit for performance
   })
 
-  const gamePages = games.map(game => ({
+  const gamePages = games.map((game: { id: string; updatedAt: Date }) => ({
     url: `${baseUrl}/games/${game.id}`,
     lastModified: game.updatedAt,
     changeFrequency: 'weekly' as const,
@@ -72,7 +72,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     take: 500,
   })
 
-  const gmPages = gms.map(gm => ({
+  const gmPages = gms.map((gm: { username: string; updatedAt: Date }) => ({
     url: `${baseUrl}/gms/${gm.username}`,
     lastModified: gm.updatedAt,
     changeFrequency: 'weekly' as const,

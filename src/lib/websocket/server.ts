@@ -1,5 +1,5 @@
 // ===== src/lib/websocket/server.ts =====
-import { Server } from 'socket.io'
+import { Server, Socket } from 'socket.io'
 import { createServer } from 'http'
 import { parse } from 'url'
 import next from 'next'
@@ -36,7 +36,7 @@ class WebSocketManager {
     })
 
     // Authentication middleware
-    this.io.use(async (socket: AuthenticatedSocket, next) => {
+    this.io.use(async (socket: AuthenticatedSocket, next: (err?: Error) => void) => {
       try {
         const token = socket.handshake.auth.token || socket.handshake.headers.authorization?.split(' ')[1]
         
@@ -99,12 +99,12 @@ class WebSocketManager {
     })
 
     // Handle real-time booking events
-    socket.on('book-game', async (data) => {
+    socket.on('book-game', async (data: { gameId: string; playerCount: number; message?: string }) => {
       await this.handleGameBooking(socket, data)
     })
 
     // Handle chat messages
-    socket.on('game-message', (data) => {
+    socket.on('game-message', (data: { gameId: string; message: string; type?: string }) => {
       this.handleGameMessage(socket, data)
     })
 

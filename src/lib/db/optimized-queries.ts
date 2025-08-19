@@ -1,6 +1,6 @@
 // ===== src/lib/db/optimized-queries.ts =====
 import { prisma } from '@/lib/prisma'
-import { Prisma } from '@prisma/client'
+import { Prisma } from '@/types/prisma'
 import { performanceMonitor } from '@/lib/monitoring/performance'
 
 interface GameFilters {

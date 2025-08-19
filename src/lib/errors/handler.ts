@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 import { AppError } from './types'
 import { logger } from '@/lib/logger'
 import { ZodError } from 'zod'
-import { Prisma } from '@prisma/client'
+import { Prisma } from '@/types/prisma'
 
 export interface ErrorResponse {
   error: {
