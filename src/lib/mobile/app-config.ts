@@ -1,4 +1,6 @@
 // ===== src/lib/mobile/app-config.ts =====
+import { env } from '@/lib/env'
+
 interface AppConfig {
   apiUrl: string
   websocketUrl: string

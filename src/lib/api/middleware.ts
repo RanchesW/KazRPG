@@ -1,9 +1,10 @@
 // ===== src/lib/api/middleware.ts =====
 import { NextRequest } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth/config'
+import { authOptions } from '@/app/auth/config'
 import { UnauthorizedError, ForbiddenError, RateLimitError } from '@/lib/errors/types'
 import { rateLimit } from '@/lib/rate-limit'
+import { handleApiError } from '@/lib/errors/handler'
 import { nanoid } from 'nanoid'
 
 export interface AuthenticatedRequest extends NextRequest {
