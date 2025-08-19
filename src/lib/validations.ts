@@ -1,19 +1,6 @@
 // ===== src/lib/validations.ts =====
 import { z } from "zod"
 
-export const signUpSchema = z.object({
-  email: z.string().email("Некорректный email"),
-  username: z.string()
-    .min(3, "Минимум 3 символа")
-    .max(20, "Максимум 20 символов")
-    .regex(/^[a-zA-Z0-9_]+$/, "Только буквы, цифры и _"),
-  firstName: z.string().min(1, "Обязательное поле"),
-  lastName: z.string().min(1, "Обязательное поле"),
-  password: z.string().min(6, "Минимум 6 символов"),
-  city: z.string().optional(),
-  language: z.enum(['RU', 'KK', 'EN']).default('RU')
-})
-
 export const gameSchema = z.object({
   title: z.string().min(1, "Обязательное поле").max(100, "Максимум 100 символов"),
   description: z.string().min(10, "Минимум 10 символов").max(2000, "Максимум 2000 символов"),
@@ -31,5 +18,4 @@ export const gameSchema = z.object({
   tags: z.array(z.string()).default([])
 })
 
-export type SignUpInput = z.infer<typeof signUpSchema>
 export type GameInput = z.infer<typeof gameSchema>

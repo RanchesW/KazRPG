@@ -1,7 +1,7 @@
 // ===== src/lib/auth.ts =====
 import bcrypt from 'bcryptjs'
 import { prisma } from './prisma'
-import { SignUpInput } from './validations'
+import { SignUpInput } from '@/app/validations/auth'
 
 export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 12)
