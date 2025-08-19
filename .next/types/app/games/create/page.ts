@@ -1,4 +1,4 @@
-// File: /workspaces/KazRPG/src/app/games/create/page.tsx
+// File: /home/runner/work/KazRPG/KazRPG/src/app/games/create/page.tsx
 import * as entry from '../../../../../src/app/games/create/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

@@ -1,4 +1,4 @@
-// File: /workspaces/KazRPG/src/app/health/route.ts
+// File: /home/runner/work/KazRPG/KazRPG/src/app/health/route.ts
 import * as entry from '../../../../src/app/health/route.js'
 import type { NextRequest } from 'next/server.js'
 
