@@ -1,6 +1,7 @@
 // ===== src/lib/performance/database-optimization.ts =====
 import { PrismaClient } from '@prisma/client'
 import { performanceMonitor } from '@/lib/monitoring/performance'
+import { prisma } from '@/lib/prisma'
 
 // Optimized Prisma client with connection pooling
 export function createOptimizedPrismaClient(): PrismaClient {

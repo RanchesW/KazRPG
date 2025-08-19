@@ -1,8 +1,7 @@
 // ===== src/lib/performance/web-vitals.ts =====
 'use client'
 
-import { getCLS, getFID, getFCP, getLCP, getTTFB } from 'web-vitals'
-import { structuredLogger } from '@/lib/logger'
+import { onCLS, onINP, onFCP, onLCP, onTTFB } from 'web-vitals'
 
 interface WebVitalMetric {
   name: string
@@ -19,32 +18,34 @@ function sendToAnalytics(metric: WebVitalMetric) {
     if (typeof window !== 'undefined' && 'gtag' in window) {
       (window as any).gtag('event', metric.name, {
         event_category: 'Web Vitals',
-        event_label: metric.id,
         value: Math.round(metric.name === 'CLS' ? metric.value * 1000 : metric.value),
         custom_map: {
-          metric_rating: metric.rating
+          metric_id: metric.id,
+          metric_rating: metric.rating,
         }
       })
     }
+  }
 
-    // Log to our monitoring system
-    structuredLogger.info('Web Vital', {
-      metric: metric.name,
+  // Log for debugging
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Web Vital:', {
+      name: metric.name,
       value: metric.value,
       rating: metric.rating,
-      category: 'performance'
+      id: metric.id
     })
   }
 }
 
-export function initWebVitals() {
+export function reportWebVitals() {
   try {
-    getCLS(sendToAnalytics)
-    getFID(sendToAnalytics) 
-    getFCP(sendToAnalytics)
-    getLCP(sendToAnalytics)
-    getTTFB(sendToAnalytics)
+    onCLS(sendToAnalytics)
+    onINP(sendToAnalytics)
+    onFCP(sendToAnalytics)
+    onLCP(sendToAnalytics)
+    onTTFB(sendToAnalytics)
   } catch (error) {
-    console.error('Error initializing web vitals:', error)
+    console.warn('Failed to initialize web vitals:', error)
   }
 }

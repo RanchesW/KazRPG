@@ -2,7 +2,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { GameCard } from './GameCard'
+import { GameCard } from '@/components/games/GameCard'
 import { InfiniteScroll } from '@/components/ui/InfiniteScroll'
 import { GameCardSkeleton } from '@/components/ui/Skeleton'
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary'

@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -44,6 +44,7 @@ model User {
   // Relations
   hostedGames   Game[]       @relation("GameMaster")
   bookings      Booking[]
+  payments      Payment[]
   reviews       Review[]     @relation("ReviewAuthor")
   receivedReviews Review[]   @relation("ReviewTarget")
   
@@ -53,7 +54,7 @@ model User {
 model Game {
   id              String      @id @default(cuid())
   title           String
-  description     String      @db.Text
+  description     String
   
   // Game details
   gameSystem      GameSystem
@@ -63,7 +64,7 @@ model Game {
   pricePerSession Int?        // в тенге
   duration        Int?        // в минутах
   difficulty      Difficulty
-  tags            String[]
+  tags            String      // JSON string for SQLite compatibility
   imageUrl        String?
   
   // Location
@@ -84,6 +85,7 @@ model Game {
   gmId            String
   gm              User        @relation("GameMaster", fields: [gmId], references: [id])
   bookings        Booking[]
+  payments        Payment[]
   reviews         Review[]
   
   createdAt       DateTime    @default(now())
@@ -129,6 +131,29 @@ model Review {
   
   @@unique([authorId, targetId, gameId])
   @@map("reviews")
+}
+
+model Payment {
+  id                String   @id
+  userId            String
+  user              User     @relation(fields: [userId], references: [id])
+  gameId            String
+  game              Game     @relation(fields: [gameId], references: [id])
+  amount            Int
+  currency          String   @default("KZT")
+  status            PaymentStatus @default(PENDING)
+  description       String?
+  provider          String   @default("KAZKOM")
+  externalId        String?
+  paymentUrl        String?
+  errorMessage      String?
+  completedAt       DateTime?
+  refundedAt        DateTime?
+  verificationData  String?  // JSON string for verification data
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@map("payments")
 }
 
 // Enums
@@ -178,4 +203,13 @@ enum BookingStatus {
   CONFIRMED
   CANCELLED
   COMPLETED
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+  REFUNDED
 }

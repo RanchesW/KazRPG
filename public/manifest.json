@@ -1,0 +1,16 @@
+{
+  "name": "KazRPG",
+  "short_name": "KazRPG",
+  "description": "Kazakhstani RPG Gaming Platform",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#111827",
+  "theme_color": "#ed641a",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

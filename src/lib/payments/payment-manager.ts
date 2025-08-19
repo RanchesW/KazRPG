@@ -3,6 +3,9 @@ import { nanoid } from 'nanoid'
 import { paymentService } from './kazkom'
 import { emailService } from '@/lib/email'
 import { wsManager } from '@/lib/websocket/server'
+import { prisma } from '@/lib/prisma'
+import { env } from '@/lib/env'
+import { structuredLogger } from '@/lib/logger'
 
 interface CreatePaymentParams {
   userId: string

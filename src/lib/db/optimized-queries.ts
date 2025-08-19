@@ -55,9 +55,9 @@ export class GameRepository {
 
         if (filters.search) {
           where.OR = [
-            { title: { contains: filters.search, mode: 'insensitive' } },
-            { description: { contains: filters.search, mode: 'insensitive' } },
-            { tags: { hasSome: [filters.search] } },
+            { title: { contains: filters.search } },
+            { description: { contains: filters.search } },
+            { tags: { contains: filters.search } },
           ]
         }
 

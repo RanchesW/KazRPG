@@ -1,5 +1,7 @@
 // ===== src/components/home/FeaturedGames.tsx =====
+import Link from 'next/link'
 import { GameCard } from '@/components/games/GameCard'
+import { Button } from '@/components/ui/Button'
 
 // Моковые данные для демонстрации
 const mockGames = [
@@ -25,7 +27,7 @@ const mockGames = [
       city: 'Алматы',
       isVerified: true
     },
-    tags: ['Новичкам', 'Ролевая игра', 'Онлайн']
+    tags: JSON.stringify(['Новичкам', 'Ролевая игра', 'Онлайн'])
   },
   {
     id: '2', 
@@ -50,7 +52,7 @@ const mockGames = [
       city: 'Алматы',
       isVerified: true
     },
-    tags: ['Хоррор', 'Расследование', 'Казахстан']
+    tags: JSON.stringify(['Хоррор', 'Расследование', 'Казахстан'])
   }
 ]
 

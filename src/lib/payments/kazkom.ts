@@ -30,12 +30,12 @@ export class KazkomPaymentService {
 
   async createPayment(params: PaymentRequest): Promise<PaymentResponse> {
     try {
-      const paymentData = {
-        userName: this.merchantId,
-        password: this.secretKey,
+      const paymentData: Record<string, string> = {
+        userName: this.merchantId!,
+        password: this.secretKey!,
         orderNumber: params.orderId,
-        amount: params.amount * 100, // Convert to tenge minor units
-        currency: '398', // KZT currency code
+        amount: params.amount.toString(),
+        currency: params.currency,
         returnUrl: params.returnUrl,
         failUrl: params.failUrl,
         description: params.description,
@@ -103,10 +103,10 @@ export class KazkomPaymentService {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: new URLSearchParams({
-          userName: this.merchantId,
-          password: this.secretKey,
+          userName: this.merchantId!,
+          password: this.secretKey!,
           orderId,
-        }).toString(),
+        } as Record<string, string>).toString(),
       })
 
       const result = await response.json()

@@ -3,8 +3,6 @@ import { Suspense } from 'react'
 import { Hero } from '@/components/home/Hero'
 import { FeaturedGames } from '@/components/home/FeaturedGames'
 import { Features } from '@/components/home/Features' 
-import { Stats } from '@/components/home/Stats'
-import { CTA } from '@/components/home/CTA'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 
 export default function HomePage() {
@@ -21,8 +19,6 @@ export default function HomePage() {
       </Suspense>
       
       <Features />
-      <Stats />
-      <CTA />
     </div>
   )
 }

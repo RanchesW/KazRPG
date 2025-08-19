@@ -1,4 +1,6 @@
 // ===== src/lib/monitoring/metrics.ts =====
+import { structuredLogger } from '@/lib/logger'
+
 interface Metric {
   name: string
   value: number

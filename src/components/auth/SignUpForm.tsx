@@ -21,7 +21,7 @@ export function SignUpForm() {
     password: '',
     confirmPassword: '',
     city: '',
-    language: 'RU' as const,
+    language: 'RU' as 'RU' | 'KK' | 'EN',
     isGM: false
   })
   const [errors, setErrors] = useState<Record<string, string>>({})

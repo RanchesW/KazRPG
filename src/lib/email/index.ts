@@ -1,5 +1,6 @@
 // ===== src/lib/email/index.ts =====
-import nodemailer from 'nodemailer'
+// TODO: Install nodemailer when email functionality is needed
+// import nodemailer from 'nodemailer'
 import { env } from '@/lib/env'
 import { structuredLogger } from '@/lib/logger'
 
@@ -10,19 +11,23 @@ interface EmailOptions {
   text?: string
 }
 
+// Mock transporter interface for compilation
+interface Transporter {
+  sendMail(options: any): Promise<any>
+}
+
+class MockTransporter implements Transporter {
+  async sendMail(options: any): Promise<any> {
+    throw new Error('Email service not configured. Please install nodemailer and configure SMTP settings.')
+  }
+}
+
 class EmailService {
-  private transporter: nodemailer.Transporter
+  private transporter: Transporter
 
   constructor() {
-    this.transporter = nodemailer.createTransporter({
-      host: env.SMTP_HOST,
-      port: env.SMTP_PORT,
-      secure: env.SMTP_SECURE,
-      auth: {
-        user: env.SMTP_USER,
-        pass: env.SMTP_PASSWORD,
-      },
-    })
+    // Use mock transporter until nodemailer is installed
+    this.transporter = new MockTransporter()
   }
 
   async sendEmail(options: EmailOptions): Promise<void> {

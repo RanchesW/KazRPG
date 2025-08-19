@@ -2,7 +2,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { initWebVitals } from '@/lib/performance/web-vitals'
+import { reportWebVitals } from '@/lib/performance/web-vitals'
 import { usePreloadCriticalRoutes, addResourceHints } from '@/lib/performance/preloading'
 
 export function WebVitalsReporter() {
@@ -10,7 +10,7 @@ export function WebVitalsReporter() {
 
   useEffect(() => {
     // Initialize web vitals tracking
-    initWebVitals()
+    reportWebVitals()
     
     // Add resource hints for better performance
     addResourceHints()

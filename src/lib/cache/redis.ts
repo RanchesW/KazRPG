@@ -32,21 +32,19 @@ class InMemoryCache implements CacheClient {
 
   async invalidatePattern(pattern: string): Promise<void> {
     const regex = new RegExp(pattern.replace(/\*/g, '.*'))
-    for (const key of this.cache.keys()) {
-      if (regex.test(key)) {
-        this.cache.delete(key)
-      }
-    }
+    const keysToDelete = Array.from(this.cache.keys()).filter(key => regex.test(key))
+    keysToDelete.forEach(key => this.cache.delete(key))
   }
 
   // Cleanup expired entries
   cleanup(): void {
     const now = Date.now()
-    for (const [key, item] of this.cache.entries()) {
+    const entries = Array.from(this.cache.entries())
+    entries.forEach(([key, item]) => {
       if (item.expires && now > item.expires) {
         this.cache.delete(key)
       }
-    }
+    })
   }
 }
 

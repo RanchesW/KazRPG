@@ -1,4 +1,11 @@
 // ===== src/lib/monitoring/performance.ts =====
+import { structuredLogger } from '@/lib/logger'
+import { metrics } from './metrics'
+
+interface LogContext {
+  [key: string]: any
+}
+
 export class PerformanceMonitor {
   private static instance: PerformanceMonitor
   
@@ -54,7 +61,7 @@ export class PerformanceMonitor {
       metrics.increment(`operation.${operation}.error`)
       structuredLogger.error(`Operation ${operation} failed`, error as Error, {
         ...context,
-        duration,
+        duration
       })
       
       throw error

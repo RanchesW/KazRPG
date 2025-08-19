@@ -7,7 +7,7 @@ declare global {
 }
 
 export class GoogleAnalytics {
-  private static readonly GA_ID = env.GOOGLE_ANALYTICS_ID
+  private static readonly GA_ID = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID
 
   static initialize() {
     if (!this.GA_ID || typeof window === 'undefined') return

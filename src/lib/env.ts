@@ -30,6 +30,8 @@ const envSchema = z.object({
   // External services
   GOOGLE_ANALYTICS_ID: z.string().optional(),
   ELASTICSEARCH_URL: z.string().url().optional(),
+  ELASTICSEARCH_USERNAME: z.string().optional(),
+  ELASTICSEARCH_PASSWORD: z.string().optional(),
   
   // AWS/Cloud storage
   BACKUP_BUCKET_NAME: z.string().optional(),

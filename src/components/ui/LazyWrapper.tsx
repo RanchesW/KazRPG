@@ -26,7 +26,7 @@ export function LazyWrapper({
 }
 
 // Utility to create lazy-loaded components with error boundaries
-export function createLazyComponent<T extends Record<string, any>>(
+export function createLazyComponent<T = any>(
   importFn: () => Promise<{ default: React.ComponentType<T> }>,
   fallback?: React.ReactNode
 ) {
@@ -35,7 +35,7 @@ export function createLazyComponent<T extends Record<string, any>>(
   return function WrappedLazyComponent(props: T) {
     return (
       <LazyWrapper fallback={fallback}>
-        <LazyComponent {...props} />
+        <LazyComponent {...(props as any)} />
       </LazyWrapper>
     )
   }
