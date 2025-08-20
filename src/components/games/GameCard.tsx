@@ -8,6 +8,7 @@ import { formatDate, formatPrice, getGameSystemLabel, getDifficultyLabel } from 
 interface GameCardProps {
   game: {
     id: string
+    slug?: string // Добавляем slug
     title: string
     description: string
     gameSystem: string
@@ -37,9 +38,12 @@ interface GameCardProps {
 export function GameCard({ game, className = '' }: GameCardProps) {
   const spotsLeft = game.maxPlayers - game.currentPlayers
   const isFullyBooked = spotsLeft === 0
+  
+  // Используем slug если доступен, иначе ID
+  const gameUrl = (game as any).slug ? `/games/${(game as any).slug}` : `/games/${game.id}`
 
   return (
-    <Link href={`/games/${game.id}`} className="block h-full">
+    <Link href={gameUrl} className="block h-full">
       <div className={`card-gradient rounded-xl overflow-hidden hover:border-purple-500/30 transition-all duration-300 shadow-lg hover:shadow-purple-500/10 ${className} flex flex-col h-full`}>
         {/* Header */}
         <div className="p-6 pb-4 flex-grow">

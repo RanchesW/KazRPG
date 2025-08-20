@@ -1,10 +1,12 @@
 {
   "/_not-found/page": "app/_not-found/page.js",
-  "/games/page": "app/games/page.js",
-  "/dashboard/page": "app/dashboard/page.js",
+  "/auth/signup/page": "app/auth/signup/page.js",
   "/page": "app/page.js",
+  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
   "/auth/signin/page": "app/auth/signin/page.js",
-  "/games/[id]/page": "app/games/[id]/page.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/profile/page": "app/profile/page.js",
+  "/games/page": "app/games/page.js",
   "/api/games/route": "app/api/games/route.js",
-  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js"
+  "/games/[id]/page": "app/games/[id]/page.js"
 }

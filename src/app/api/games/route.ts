@@ -1,7 +1,11 @@
 // src/app/api/games/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
 import { handleApiError } from '@/lib/errors/handler'
+import { generateGameSlug } from '@/lib/slug'
+import { createGameWithSlug, getGamesWithSlug, isSlugUnique } from '@/lib/slug-queries'
+
 
 export async function GET(request: NextRequest) {
   try {
@@ -43,31 +47,12 @@ export async function GET(request: NextRequest) {
 
 
     const [games, total] = await Promise.all([
-      prisma.game.findMany({
-        where,
-        include: {
-          gm: {
-            select: {
-              id: true,
-              username: true,
-              firstName: true,
-              lastName: true,
-              rating: true
-            }
-          },
-          _count: {
-            select: {
-              bookings: true
-            }
-          }
-        },
-        orderBy: {
-          createdAt: 'desc'
-        },
+      getGamesWithSlug(where, {
+        orderBy: { createdAt: 'desc' },
         skip,
         take: limit
       }),
-      prisma.game.count({ where })
+      prisma.games.count({ where })
     ])
 
     return NextResponse.json({
@@ -80,6 +65,70 @@ export async function GET(request: NextRequest) {
       }
     })
 
+  } catch (error) {
+    return handleApiError(error)
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json()
+    
+    // TODO: Добавить аутентификацию и получение ID пользователя из сессии
+    const gmId = 'temp-user-id' // Заглушка
+    
+    const {
+      title,
+      description,
+      gameSystem,
+      platform,
+      maxPlayers,
+      pricePerSession,
+      duration,
+      difficulty,
+      tags,
+      isOnline,
+      city,
+      address,
+      startDate,
+      language
+    } = body
+    
+    // Генерируем уникальный slug
+    // Генерируем уникальный slug
+    const baseSlug = generateGameSlug(title, gameSystem, city)
+    let slug = baseSlug
+    let counter = 1
+    
+    // Проверяем уникальность slug
+    while (!(await isSlugUnique(slug))) {
+      slug = `${baseSlug}-${counter}`
+      counter++
+    }
+    
+    const gameData = {
+      title,
+      description,
+      gameSystem,
+      platform,
+      maxPlayers,
+      pricePerSession,
+      duration,
+      difficulty,
+      tags,
+      isOnline,
+      city,
+      address,
+      startDate: new Date(startDate),
+      language,
+      gmId,
+      slug
+    }
+    
+    const game = await createGameWithSlug(gameData)
+    
+    return NextResponse.json(game, { status: 201 })
+    
   } catch (error) {
     return handleApiError(error)
   }

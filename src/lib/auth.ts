@@ -2,6 +2,7 @@
 import bcrypt from 'bcryptjs'
 import { prisma } from './prisma'
 import { SignUpData } from '@/lib/validations/auth'
+import { createId } from '@paralleldrive/cuid2'
 
 export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 12)
@@ -14,8 +15,9 @@ export async function verifyPassword(password: string, hashedPassword: string): 
 export async function createUser(data: SignUpData) {
   const hashedPassword = await hashPassword(data.password)
   
-  return prisma.user.create({
+  return prisma.users.create({
     data: {
+      id: createId(), // Manually generate CUID since SQLite doesn't auto-generate
       email: data.email,
       username: data.username,
       firstName: data.firstName,
@@ -25,19 +27,7 @@ export async function createUser(data: SignUpData) {
       isGM: data.isGM,
       hashedPassword,
       emailVerified: true, // Set to true for development - implement email verification later
-    },
-    select: {
-      id: true,
-      email: true,
-      username: true,
-      firstName: true,
-      lastName: true,
-      city: true,
-      language: true,
-      isGM: true,
-      isVerified: true,
-      rating: true,
-      createdAt: true,
+      updatedAt: new Date(), // Required field according to the Prisma schema
     }
   })
 }

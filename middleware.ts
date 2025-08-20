@@ -11,6 +11,18 @@ export default withAuth(
                             req.nextUrl.pathname.startsWith('/games/create') ||
                             req.nextUrl.pathname.startsWith('/profile')
     const isGMRoute = req.nextUrl.pathname.startsWith('/gm')
+    const isGamePage = req.nextUrl.pathname.startsWith('/games/')
+
+    // Log beautiful game URLs for analytics
+    if (isGamePage && req.nextUrl.pathname !== '/games' && req.nextUrl.pathname !== '/games/create') {
+      const gameId = req.nextUrl.pathname.split('/games/')[1]
+      if (gameId && !gameId.includes('?')) {
+        console.log(`🎮 Game URL accessed: ${req.nextUrl.pathname}`)
+        console.log(`📊 Game ID/Slug: ${gameId}`)
+        console.log(`🌐 User Agent: ${req.headers.get('user-agent')}`)
+        console.log(`📍 Referer: ${req.headers.get('referer') || 'Direct'}`)
+      }
+    }
 
     // Allow auth pages and API routes
     if (isAuthPage || isApiAuthRoute) {

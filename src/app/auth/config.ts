@@ -30,7 +30,7 @@ export const authOptions: NextAuthOptions = {
 
           const { email, password } = signInSchema.parse(credentials)
 
-          const user = await prisma.user.findUnique({
+          const user = await prisma.users.findUnique({
             where: { email },
             select: {
               id: true,

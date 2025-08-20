@@ -1,31 +1,59 @@
 // src/app/games/[id]/page.tsx
 import { prisma } from '@/lib/prisma'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { Calendar, Users, MapPin, Clock, DollarSign, Shield, Globe, BarChart } from 'lucide-react'
 import { getGameSystemLabel, getDifficultyLabel, formatDate, formatPrice } from '@/lib/utils'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
+import { findGameBySlugWithRelations } from '@/lib/slug-queries'
 
 interface GamePageProps {
   params: {
-    id: string
+    id: string // Теперь может быть как ID, так и slug
   }
 }
 
 export default async function GamePage({ params }: GamePageProps) {
-  const game = await prisma.game.findUnique({
-    where: { id: params.id },
-    include: {
-      gm: true,
-      bookings: true,
-    },
-  })
+  const { id } = params
+  
+  // Сначала пытаемся найти по slug
+  let game = await findGameBySlugWithRelations(id)
+  
+  // Если не найдено по slug, пытаемся найти по ID (для обратной совместимости)
+  if (!game) {
+    const gameData = await prisma.games.findUnique({
+      where: { id }
+    })
+    
+    if (gameData) {
+      // Получаем связанные данные
+      const [gm, bookings] = await Promise.all([
+        prisma.users.findUnique({
+          where: { id: gameData.gmId }
+        }),
+        prisma.bookings.findMany({
+          where: { gameId: gameData.id }
+        })
+      ])
+      
+      game = {
+        ...gameData,
+        gm,
+        bookings: bookings || []
+      }
+      
+      // Если игра найдена по ID, но у неё есть slug - редиректим на красивый URL
+      if ((gameData as any).slug) {
+        redirect(`/games/${(gameData as any).slug}`)
+      }
+    }
+  }
 
   if (!game) {
     notFound()
   }
 
-  const spotsLeft = game.maxPlayers - game.bookings.length;
+  const spotsLeft = game.maxPlayers - game.bookings.length
 
   return (
     <div className="min-h-screen bg-slate-900 text-white">
@@ -53,15 +81,19 @@ export default async function GamePage({ params }: GamePageProps) {
               {/* Game Master Info */}
               <div className="mb-6 pb-6 border-b border-slate-700">
                 <h2 className="text-xl font-semibold text-slate-200 mb-3">Мастер Игры (GM)</h2>
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-full bg-purple-500 flex items-center justify-center text-2xl font-bold">
-                    {game.gm.firstName.charAt(0)}{game.gm.lastName.charAt(0)}
+                {game.gm ? (
+                  <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 rounded-full bg-purple-500 flex items-center justify-center text-2xl font-bold">
+                      {game.gm.firstName.charAt(0)}{game.gm.lastName.charAt(0)}
+                    </div>
+                    <div>
+                      <p className="text-lg font-bold text-white">{game.gm.username}</p>
+                      <p className="text-sm text-slate-400">{game.gm.city}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-lg font-bold text-white">{game.gm.username}</p>
-                    <p className="text-sm text-slate-400">{game.gm.city}</p>
-                  </div>
-                </div>
+                ) : (
+                  <p className="text-slate-400">Информация о мастере недоступна</p>
+                )}
               </div>
 
               {/* Game Details */}

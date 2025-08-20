@@ -1,6 +1,3 @@
-// KazRPG - Prisma Schema для локальной разработки
-// Файл: prisma/schema.prisma
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,206 +7,111 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id            String   @id @default(cuid())
-  email         String   @unique
-  username      String   @unique
-  firstName     String
-  lastName      String
-  avatar        String?
-  bio           String?
-  
-  // Kazakhstan-specific
-  city          String?   // Алматы, Астана, etc.
-  timezone      String   @default("Asia/Almaty")
-  language      Language @default(RU)
-  
-  // Gaming profile
-  isGM          Boolean  @default(false)
-  isVerified    Boolean  @default(false)
-  experience    Experience @default(BEGINNER)
-  
-  // Reputation
-  rating        Float    @default(0)
-  reviewCount   Int      @default(0)
-  
-  // Auth
-  hashedPassword String
-  emailVerified  Boolean  @default(false)
-  
-  // Timestamps
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  
-  // Relations
-  hostedGames   Game[]       @relation("GameMaster")
-  bookings      Booking[]
-  payments      Payment[]
-  reviews       Review[]     @relation("ReviewAuthor")
-  receivedReviews Review[]   @relation("ReviewTarget")
-  
-  @@map("users")
-}
-
-model Game {
-  id              String      @id @default(cuid())
-  title           String
-  description     String
-  
-  // Game details
-  gameSystem      GameSystem
-  platform        Platform?
-  maxPlayers      Int
-  currentPlayers  Int         @default(0)
-  pricePerSession Int?        // в тенге
-  duration        Int?        // в минутах
-  difficulty      Difficulty
-  tags            String      // JSON string for SQLite compatibility
-  imageUrl        String?
-  
-  // Location
-  isOnline        Boolean     @default(true)
-  city            String?
-  address         String?
-  
-  // Scheduling
-  startDate       DateTime
-  endDate         DateTime?
-  isRecurring     Boolean     @default(false)
-  
-  // Settings
-  language        Language    @default(RU)
-  isActive        Boolean     @default(true)
-  
-  // Relations
-  gmId            String
-  gm              User        @relation("GameMaster", fields: [gmId], references: [id])
-  bookings        Booking[]
-  payments        Payment[]
-  reviews         Review[]
-  
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  
-  @@map("games")
-}
-
-model Booking {
-  id          String        @id @default(cuid())
-  status      BookingStatus @default(PENDING)
-  playerCount Int           @default(1)
+model bookings {
+  id          String   @id
+  status      String   @default("PENDING")
+  playerCount Int      @default(1)
   message     String?
   totalPrice  Int?
-  
-  // Relations
   userId      String
-  user        User          @relation(fields: [userId], references: [id])
   gameId      String
-  game        Game          @relation(fields: [gameId], references: [id])
-  
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+  games       games    @relation(fields: [gameId], references: [id])
+  users       users    @relation(fields: [userId], references: [id])
+
   @@unique([userId, gameId])
-  @@map("bookings")
 }
 
-model Review {
-  id        String   @id @default(cuid())
-  rating    Int      // 1-5
-  comment   String?
-  
-  // Relations
-  authorId  String
-  author    User     @relation("ReviewAuthor", fields: [authorId], references: [id])
-  targetId  String
-  target    User     @relation("ReviewTarget", fields: [targetId], references: [id])
-  gameId    String
-  game      Game     @relation(fields: [gameId], references: [id])
-  
-  createdAt DateTime @default(now())
-  
+model games {
+  id              String     @id
+  title           String
+  description     String
+  gameSystem      String
+  platform        String?
+  maxPlayers      Int
+  currentPlayers  Int        @default(0)
+  pricePerSession Int?
+  duration        Int?
+  difficulty      String
+  tags            String
+  imageUrl        String?
+  isOnline        Boolean    @default(true)
+  city            String?
+  address         String?
+  startDate       DateTime
+  endDate         DateTime?
+  isRecurring     Boolean    @default(false)
+  language        String     @default("RU")
+  isActive        Boolean    @default(true)
+  gmId            String
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime
+  bookings        bookings[]
+  users           users      @relation(fields: [gmId], references: [id])
+  payments        payments[]
+  reviews         reviews[]
+}
+
+model payments {
+  id               String    @id
+  userId           String
+  gameId           String
+  amount           Int
+  currency         String    @default("KZT")
+  status           String    @default("PENDING")
+  description      String?
+  provider         String    @default("KAZKOM")
+  externalId       String?
+  paymentUrl       String?
+  errorMessage     String?
+  completedAt      DateTime?
+  refundedAt       DateTime?
+  verificationData String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime
+  games            games     @relation(fields: [gameId], references: [id])
+  users            users     @relation(fields: [userId], references: [id])
+}
+
+model reviews {
+  id                            String   @id
+  rating                        Int
+  comment                       String?
+  authorId                      String
+  targetId                      String
+  gameId                        String
+  createdAt                     DateTime @default(now())
+  games                         games    @relation(fields: [gameId], references: [id])
+  users_reviews_targetIdTousers users    @relation("reviews_targetIdTousers", fields: [targetId], references: [id])
+  users_reviews_authorIdTousers users    @relation("reviews_authorIdTousers", fields: [authorId], references: [id])
+
   @@unique([authorId, targetId, gameId])
-  @@map("reviews")
 }
 
-model Payment {
-  id                String   @id
-  userId            String
-  user              User     @relation(fields: [userId], references: [id])
-  gameId            String
-  game              Game     @relation(fields: [gameId], references: [id])
-  amount            Int
-  currency          String   @default("KZT")
-  status            PaymentStatus @default(PENDING)
-  description       String?
-  provider          String   @default("KAZKOM")
-  externalId        String?
-  paymentUrl        String?
-  errorMessage      String?
-  completedAt       DateTime?
-  refundedAt        DateTime?
-  verificationData  String?  // JSON string for verification data
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  
-  @@map("payments")
-}
-
-// Enums
-enum Language {
-  EN
-  RU
-  KK
-}
-
-enum Experience {
-  BEGINNER
-  INTERMEDIATE
-  ADVANCED
-  EXPERT
-}
-
-enum GameSystem {
-  DND5E
-  PATHFINDER2E
-  CALL_OF_CTHULHU
-  VAMPIRE
-  SHADOWRUN
-  CYBERPUNK
-  WARHAMMER40K
-  OTHER
-}
-
-enum Platform {
-  ROLL20
-  FOUNDRY
-  DISCORD
-  ZOOM
-  TELEGRAM
-  IN_PERSON
-  OTHER
-}
-
-enum Difficulty {
-  BEGINNER_FRIENDLY
-  INTERMEDIATE
-  ADVANCED
-  EXPERT_ONLY
-}
-
-enum BookingStatus {
-  PENDING
-  CONFIRMED
-  CANCELLED
-  COMPLETED
-}
-
-enum PaymentStatus {
-  PENDING
-  PROCESSING
-  COMPLETED
-  FAILED
-  CANCELLED
-  REFUNDED
+model users {
+  id                              String     @id
+  email                           String     @unique
+  username                        String     @unique
+  firstName                       String
+  lastName                        String
+  avatar                          String?
+  bio                             String?
+  city                            String?
+  timezone                        String     @default("Asia/Almaty")
+  language                        String     @default("RU")
+  isGM                            Boolean    @default(false)
+  isVerified                      Boolean    @default(false)
+  experience                      String     @default("BEGINNER")
+  rating                          Float      @default(0)
+  reviewCount                     Int        @default(0)
+  hashedPassword                  String
+  emailVerified                   Boolean    @default(false)
+  createdAt                       DateTime   @default(now())
+  updatedAt                       DateTime
+  bookings                        bookings[]
+  games                           games[]
+  payments                        payments[]
+  reviews_reviews_targetIdTousers reviews[]  @relation("reviews_targetIdTousers")
+  reviews_reviews_authorIdTousers reviews[]  @relation("reviews_authorIdTousers")
 }

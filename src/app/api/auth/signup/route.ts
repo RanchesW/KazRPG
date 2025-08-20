@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     const data = validationResult.data
 
     // Check if user already exists
-    const existingUserByEmail = await prisma.user.findUnique({
+    const existingUserByEmail = await prisma.users.findUnique({
       where: { email: data.email }
     })
 
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const existingUserByUsername = await prisma.user.findUnique({
+    const existingUserByUsername = await prisma.users.findUnique({
       where: { username: data.username }
     })
 

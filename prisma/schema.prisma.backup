@@ -1,0 +1,183 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String     @id @default(cuid())
+  email           String     @unique
+  username        String     @unique
+  firstName       String
+  lastName        String
+  avatar          String?
+  bio             String?
+  city            String?
+  timezone        String     @default("Asia/Almaty")
+  language        Language   @default("RU")
+  isGM            Boolean    @default(false)
+  isVerified      Boolean    @default(false)
+  experience      Experience @default("BEGINNER")
+  rating          Float      @default(0)
+  reviewCount     Int        @default(0)
+  hashedPassword  String
+  emailVerified   Boolean    @default(false)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  bookings        Booking[]
+  hostedGames     Game[]     @relation("GameMaster")
+  payments        Payment[]
+  receivedReviews Review[]   @relation("ReviewTarget")
+  reviews         Review[]   @relation("ReviewAuthor")
+
+  @@map("users")
+}
+
+model Game {
+  id              String     @id @default(cuid())
+  slug            String     @unique
+  title           String
+  description     String
+  gameSystem      GameSystem
+  platform        Platform?
+  maxPlayers      Int
+  currentPlayers  Int        @default(0)
+  pricePerSession Int?
+  duration        Int?
+  difficulty      Difficulty
+  tags            String
+  imageUrl        String?
+  isOnline        Boolean    @default(true)
+  city            String?
+  address         String?
+  startDate       DateTime
+  endDate         DateTime?
+  isRecurring     Boolean    @default(false)
+  language        Language   @default("RU")
+  isActive        Boolean    @default(true)
+  gmId            String
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  bookings        Booking[]
+  gm              User       @relation("GameMaster", fields: [gmId], references: [id])
+  payments        Payment[]
+  reviews         Review[]
+
+  @@map("games")
+}
+
+model Booking {
+  id          String        @id @default(cuid())
+  status      BookingStatus @default("PENDING")
+  playerCount Int           @default(1)
+  message     String?
+  totalPrice  Int?
+  userId      String
+  gameId      String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  game        Game          @relation(fields: [gameId], references: [id])
+  user        User          @relation(fields: [userId], references: [id])
+
+  @@unique([userId, gameId])
+  @@map("bookings")
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  rating    Int
+  comment   String?
+  authorId  String
+  targetId  String
+  gameId    String
+  createdAt DateTime @default(now())
+  game      Game     @relation(fields: [gameId], references: [id])
+  target    User     @relation("ReviewTarget", fields: [targetId], references: [id])
+  author    User     @relation("ReviewAuthor", fields: [authorId], references: [id])
+
+  @@unique([authorId, targetId, gameId])
+  @@map("reviews")
+}
+
+model Payment {
+  id               String        @id
+  userId           String
+  gameId           String
+  amount           Int
+  currency         String        @default("KZT")
+  status           PaymentStatus @default("PENDING")
+  description      String?
+  provider         String        @default("KAZKOM")
+  externalId       String?
+  paymentUrl       String?
+  errorMessage     String?
+  completedAt      DateTime?
+  refundedAt       DateTime?
+  verificationData String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  game             Game          @relation(fields: [gameId], references: [id])
+  user             User          @relation(fields: [userId], references: [id])
+
+  @@map("payments")
+}
+
+enum Language {
+  EN
+  RU
+  KK
+}
+
+enum Experience {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+}
+
+enum GameSystem {
+  DND5E
+  PATHFINDER2E
+  CALL_OF_CTHULHU
+  VAMPIRE
+  SHADOWRUN
+  CYBERPUNK
+  WARHAMMER40K
+  OTHER
+}
+
+enum Platform {
+  ROLL20
+  FOUNDRY
+  DISCORD
+  ZOOM
+  TELEGRAM
+  IN_PERSON
+  OTHER
+}
+
+enum Difficulty {
+  BEGINNER_FRIENDLY
+  INTERMEDIATE
+  ADVANCED
+  EXPERT_ONLY
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+  REFUNDED
+}
