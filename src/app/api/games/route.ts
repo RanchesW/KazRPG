@@ -9,8 +9,10 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '12')
     const search = searchParams.get('search') || ''
-    const system = searchParams.get('system') || ''
-    const status = searchParams.get('status') || ''
+    const gameSystem = searchParams.get('gameSystem') || ''
+    const city = searchParams.get('city') || ''
+    const difficulty = searchParams.get('difficulty') || ''
+    const isOnline = searchParams.get('isOnline')
 
     const skip = (page - 1) * limit
 
@@ -18,24 +20,33 @@ export async function GET(request: NextRequest) {
 
     if (search) {
       where.OR = [
-        { title: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } }
+        { title: { contains: search } },
+        { description: { contains: search } }
       ]
     }
 
-    if (system) {
-      where.system = system
+    if (gameSystem) {
+      where.gameSystem = gameSystem
     }
 
-    if (status) {
-      where.status = status
+    if (city) {
+      where.city = city
     }
+
+    if (difficulty) {
+      where.difficulty = difficulty
+    }
+
+    if (isOnline) {
+      where.isOnline = isOnline === 'true'
+    }
+
 
     const [games, total] = await Promise.all([
       prisma.game.findMany({
         where,
         include: {
-          gameMaster: {
+          gm: {
             select: {
               id: true,
               username: true,
@@ -46,7 +57,7 @@ export async function GET(request: NextRequest) {
           },
           _count: {
             select: {
-              players: true
+              bookings: true
             }
           }
         },

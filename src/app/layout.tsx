@@ -7,6 +7,7 @@ import { Toaster } from '@/components/ui/Toast'
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
 import { WebVitalsReporter } from '@/components/analytics/WebVitalsReporter'
 import { Providers } from '@/components/providers/Providers'
+import ClientLayout from '@/components/providers/ClientLayout'
 
 // Temporarily disabled due to network restrictions
 // const inter = Inter({ 
@@ -83,15 +84,17 @@ export default function RootLayout({
       <body className="font-sans"> {/* Use system font fallback */}
         <ErrorBoundary>
           <Providers>
-            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-              <Header />
-              <main className="flex-1">
-                {children}
-              </main>
-              <Footer />
-            </div>
-            <Toaster />
-            <WebVitalsReporter />
+            <ClientLayout>
+              <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+                <Header />
+                <main className="flex-1 pt-16">
+                  {children}
+                </main>
+                <Footer />
+              </div>
+              <Toaster />
+              <WebVitalsReporter />
+            </ClientLayout>
           </Providers>
         </ErrorBoundary>
       </body>

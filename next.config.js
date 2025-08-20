@@ -7,6 +7,10 @@ const nextConfig = {
     // !! WARN !!
     ignoreBuildErrors: false,
   },
+  // Dev server configuration for containers
+  experimental: {
+    allowedRevalidateHeaderKeys: ['authorization'],
+  },
   // Allow dev server cross-origin requests
   async headers() {
     return [

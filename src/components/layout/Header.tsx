@@ -3,10 +3,12 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Dice6, Menu, X, User, Search } from 'lucide-react'
+import { useSession, signOut } from 'next-auth/react'
+import { Dice6, Menu, X, User, Search, LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 
 export function Header() {
+  const { data: session } = useSession()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   return (
@@ -38,12 +40,27 @@ export function Header() {
               <Search className="w-4 h-4 mr-2" />
               Поиск
             </Button>
-            <Button variant="ghost" size="sm">
-              <Link href="/auth/signin">Войти</Link>
-            </Button>
-            <Button size="sm">
-              <Link href="/auth/signup">Регистрация</Link>
-            </Button>
+            {session ? (
+              <>
+                <Link href="/dashboard" className="flex items-center gap-2 text-sm font-medium text-gray-300 hover:text-white">
+                  <User className="w-5 h-5" />
+                  {session.user?.name || session.user?.email}
+                </Link>
+                <Button variant="ghost" size="sm" onClick={() => signOut()}>
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Выйти
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="ghost" size="sm">
+                  <Link href="/auth/signin">Войти</Link>
+                </Button>
+                <Button size="sm">
+                  <Link href="/auth/signup">Регистрация</Link>
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -69,12 +86,27 @@ export function Header() {
                 О нас
               </Link>
               <div className="flex flex-col space-y-2 pt-4 border-t border-gray-700">
-                <Button variant="ghost" className="justify-start">
-                  <Link href="/auth/signin">Войти</Link>
-                </Button>
-                <Button className="justify-start">
-                  <Link href="/auth/signup">Регистрация</Link>
-                </Button>
+                {session ? (
+                  <>
+                    <Link href="/dashboard" className="text-gray-300 hover:text-white flex items-center gap-2">
+                      <User className="w-5 h-5" />
+                      Профиль
+                    </Link>
+                    <Button variant="ghost" className="justify-start" onClick={() => signOut()}>
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Выйти
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button variant="ghost" className="justify-start">
+                      <Link href="/auth/signin">Войти</Link>
+                    </Button>
+                    <Button className="justify-start">
+                      <Link href="/auth/signup">Регистрация</Link>
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </div>

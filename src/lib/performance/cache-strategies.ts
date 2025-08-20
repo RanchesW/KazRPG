@@ -44,7 +44,6 @@ class CacheStrategy {
           },
           orderBy: [
             { currentPlayers: 'desc' },
-            { rating: 'desc' },
             { createdAt: 'desc' }
           ],
           take: limit,
