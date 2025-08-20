@@ -32,7 +32,6 @@ export function useInfiniteGames(filters: GameFilters = {}) {
 
   const fetchGames = useCallback(
     async (page: number, isNewSearch = false) => {
-      console.log('fetchGames called with page:', page, 'isNewSearch:', isNewSearch)
       setLoading(true)
       setError(null)
 
@@ -45,7 +44,6 @@ export function useInfiniteGames(filters: GameFilters = {}) {
           ),
         })
 
-        console.log('Fetching:', `/api/games?${searchParams}`)
         const response = await fetch(`/api/games?${searchParams}`)
         
         if (!response.ok) {
@@ -53,7 +51,6 @@ export function useInfiniteGames(filters: GameFilters = {}) {
         }
 
         const result: GamesResponse = await response.json()
-        console.log('API result:', result)
 
         if (isNewSearch) {
           setData(result.games)
@@ -64,7 +61,6 @@ export function useInfiniteGames(filters: GameFilters = {}) {
         setHasNextPage(page < result.pagination.pages)
         setCurrentPage(page)
       } catch (err) {
-        console.error('Error fetching games:', err)
         setError(err instanceof Error ? err.message : 'Unknown error')
       } finally {
         setLoading(false)
