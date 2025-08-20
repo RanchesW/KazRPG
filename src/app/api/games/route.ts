@@ -1,7 +1,6 @@
 // src/app/api/games/route.ts
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
-import { handleApiError } from '@/lib/errors/handler'
+import { SimpleGameRepository } from '@/lib/simple-db'
 
 export async function GET(request: NextRequest) {
   try {
@@ -9,67 +8,38 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '12')
     const search = searchParams.get('search') || ''
-    const system = searchParams.get('system') || ''
-    const status = searchParams.get('status') || ''
+    const city = searchParams.get('city') || ''
+    const gameSystem = searchParams.get('gameSystem') || ''
+    const isOnline = searchParams.get('isOnline')
+    const language = searchParams.get('language') || ''
+    const difficulty = searchParams.get('difficulty') || ''
 
-    const skip = (page - 1) * limit
-
-    const where: any = {}
-
-    if (search) {
-      where.OR = [
-        { title: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } }
-      ]
+    const filters = {
+      search: search || undefined,
+      city: city || undefined,
+      gameSystem: gameSystem || undefined,
+      isOnline: isOnline === 'true' ? true : isOnline === 'false' ? false : undefined,
+      language: language || undefined,
+      difficulty: difficulty || undefined,
     }
 
-    if (system) {
-      where.system = system
-    }
-
-    if (status) {
-      where.status = status
-    }
-
-    const [games, total] = await Promise.all([
-      prisma.game.findMany({
-        where,
-        include: {
-          gameMaster: {
-            select: {
-              id: true,
-              username: true,
-              firstName: true,
-              lastName: true,
-              rating: true
-            }
-          },
-          _count: {
-            select: {
-              players: true
-            }
-          }
-        },
-        orderBy: {
-          createdAt: 'desc'
-        },
-        skip,
-        take: limit
-      }),
-      prisma.game.count({ where })
-    ])
+    const result = await SimpleGameRepository.findGames(filters, page, limit)
 
     return NextResponse.json({
-      games,
+      games: result.games,
       pagination: {
-        total,
-        page,
-        limit,
-        pages: Math.ceil(total / limit)
+        total: result.total,
+        page: result.page,
+        limit: result.limit,
+        pages: result.pages
       }
     })
 
   } catch (error) {
-    return handleApiError(error)
+    console.error('Games API error:', error)
+    return NextResponse.json(
+      { error: 'Failed to fetch games' },
+      { status: 500 }
+    )
   }
 }
