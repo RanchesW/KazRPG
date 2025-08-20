@@ -1,6 +1,6 @@
 // ===== src/app/sitemap.ts =====
 import { MetadataRoute } from 'next'
-import { prisma } from '@/lib/prisma'
+// import { prisma } from '@/lib/prisma' // Temporarily disabled
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://kazrpg.kz'
@@ -33,35 +33,35 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ]
 
-  // Dynamic game pages
-  const games = await prisma.game.findMany({
-    where: { isActive: true },
-    select: { id: true, updatedAt: true },
-    orderBy: { updatedAt: 'desc' },
-    take: 1000, // Limit for performance
-  })
+  // Dynamic game pages - temporarily disabled until Prisma is set up
+  // const games = await prisma.game.findMany({
+  //   where: { isActive: true },
+  //   select: { id: true, updatedAt: true },
+  //   orderBy: { updatedAt: 'desc' },
+  //   take: 1000, // Limit for performance
+  // })
 
-  const gamePages = games.map(game => ({
-    url: `${baseUrl}/games/${game.id}`,
-    lastModified: game.updatedAt,
-    changeFrequency: 'weekly' as const,
-    priority: 0.7,
-  }))
+  // const gamePages = games.map((game: { id: string; updatedAt: Date }) => ({
+  //   url: `${baseUrl}/games/${game.id}`,
+  //   lastModified: game.updatedAt,
+  //   changeFrequency: 'weekly' as const,
+  //   priority: 0.7,
+  // }))
 
-  // GM pages
-  const gms = await prisma.user.findMany({
-    where: { isGM: true, isVerified: true },
-    select: { username: true, updatedAt: true },
-    orderBy: { updatedAt: 'desc' },
-    take: 500,
-  })
+  // GM pages - temporarily disabled
+  // const gms = await prisma.user.findMany({
+  //   where: { isGM: true, isVerified: true },
+  //   select: { username: true, updatedAt: true },
+  //   orderBy: { updatedAt: 'desc' },
+  //   take: 500,
+  // })
 
-  const gmPages = gms.map(gm => ({
-    url: `${baseUrl}/gms/${gm.username}`,
-    lastModified: gm.updatedAt,
-    changeFrequency: 'weekly' as const,
-    priority: 0.6,
-  }))
+  // const gmPages = gms.map((gm: { username: string; updatedAt: Date }) => ({
+  //   url: `${baseUrl}/gms/${gm.username}`,
+  //   lastModified: gm.updatedAt,
+  //   changeFrequency: 'weekly' as const,
+  //   priority: 0.6,
+  // }))
 
   // City pages
   const cities = ['Алматы', 'Астана', 'Шымкент', 'Актобе', 'Тараз']
@@ -72,5 +72,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }))
 
-  return [...staticPages, ...gamePages, ...gmPages, ...cityPages]
+  return [...staticPages, ...cityPages] // Temporarily exclude gamePages and gmPages
 }

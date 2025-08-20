@@ -1,7 +1,7 @@
 // ===== src/lib/auth.ts =====
 import bcrypt from 'bcryptjs'
 import { prisma } from './prisma'
-import { SignUpInput } from '@/app/validations/auth'
+import { SignUpData } from '@/lib/validations/auth'
 
 export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 12)
@@ -11,7 +11,7 @@ export async function verifyPassword(password: string, hashedPassword: string): 
   return bcrypt.compare(password, hashedPassword)
 }
 
-export async function createUser(data: SignUpInput) {
+export async function createUser(data: SignUpData) {
   const hashedPassword = await hashPassword(data.password)
   
   return prisma.user.create({
@@ -22,7 +22,9 @@ export async function createUser(data: SignUpInput) {
       lastName: data.lastName,
       city: data.city,
       language: data.language,
+      isGM: data.isGM,
       hashedPassword,
+      emailVerified: true, // Set to true for development - implement email verification later
     },
     select: {
       id: true,

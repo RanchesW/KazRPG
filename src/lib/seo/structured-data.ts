@@ -42,7 +42,7 @@ export class StructuredDataGenerator {
       image: game.imageUrl,
       url: `https://kazrpg.kz/games/${game.id}`,
       category: 'Entertainment',
-      keywords: game.tags?.join(', '),
+      keywords: game.tags ? JSON.parse(game.tags).join(', ') : '',
     }
   }
 

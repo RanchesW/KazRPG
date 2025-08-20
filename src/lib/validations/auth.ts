@@ -15,9 +15,10 @@ export const signUpSchema = z.object({
     .max(30, 'Фамилия должна быть не более 30 символов'),
   password: z.string()
     .min(8, 'Пароль должен быть не менее 8 символов')
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 'Пароль должен содержать хотя бы одну строчную букву, одну заглавную букву и одну цифру'),
+    .regex(/^(?=.*[a-zA-Z])(?=.*\d)/, 'Пароль должен содержать хотя бы одну букву и одну цифру'),
   confirmPassword: z.string(),
   city: z.string().optional(),
+  language: z.enum(['RU', 'KK', 'EN']).default('RU'),
   isGM: z.boolean().default(false),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Пароли не совпадают",

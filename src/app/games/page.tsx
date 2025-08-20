@@ -18,7 +18,13 @@ export default function GamesPage() {
           </p>
         </div>
 
-        <GameSearch />
+        <Suspense fallback={
+          <div className="flex justify-center py-4">
+            <LoadingSpinner size="md" />
+          </div>
+        }>
+          <GameSearch />
+        </Suspense>
 
         <Suspense fallback={
           <div className="flex justify-center py-20">

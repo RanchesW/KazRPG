@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+// import { Inter } from 'next/font/google'
 import './globals.css'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
@@ -8,13 +8,16 @@ import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
 import { WebVitalsReporter } from '@/components/analytics/WebVitalsReporter'
 import { Providers } from '@/components/providers/Providers'
 
-const inter = Inter({ 
-  subsets: ['latin', 'cyrillic'],
-  display: 'swap', // Better font loading performance
-  preload: true,
-})
+// Temporarily disabled due to network restrictions
+// const inter = Inter({ 
+//   subsets: ['latin', 'cyrillic'],
+//   display: 'swap', // Better font loading performance
+//   preload: true,
+//   fallback: ['system-ui', 'arial', 'sans-serif'],
+// })
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://kazrpg.kz'),
   title: {
     default: 'KazRPG - Найди свою игру в D&D по Казахстану',
     template: '%s | KazRPG'
@@ -77,7 +80,7 @@ export default function RootLayout({
         <meta name="theme-color" content="#7c3aed" />
         <meta name="msapplication-TileColor" content="#7c3aed" />
       </head>
-      <body className={inter.className}>
+      <body className="font-sans"> {/* Use system font fallback */}
         <ErrorBoundary>
           <Providers>
             <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">

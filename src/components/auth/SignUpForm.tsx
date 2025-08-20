@@ -36,6 +36,9 @@ export function SignUpForm() {
     if (!formData.lastName) newErrors.lastName = 'Фамилия обязательна'
     if (!formData.password) newErrors.password = 'Пароль обязателен'
     if (formData.password.length < 8) newErrors.password = 'Минимум 8 символов'
+    if (formData.password && !/(?=.*[a-zA-Z])(?=.*\d)/.test(formData.password)) {
+      newErrors.password = 'Пароль должен содержать хотя бы одну букву и одну цифру'
+    }
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Пароли не совпадают'
     }
@@ -130,6 +133,7 @@ export function SignUpForm() {
             value={formData.password}
             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
             error={errors.password}
+            placeholder="Минимум 8 символов, буквы и цифры"
             required
             disabled={loading}
           />

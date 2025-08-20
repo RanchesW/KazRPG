@@ -7,11 +7,12 @@ export class SEOMetaGenerator {
     const title = `${game.title} | ${game.gm.firstName} ${game.gm.lastName} | KazRPG`
     const description = `${game.description.substring(0, 160)}... Игра в ${game.gameSystem} с мастером ${game.gm.username}. ${game.isOnline ? 'Онлайн' : game.city} игра для ${game.maxPlayers} игроков.`
     
+    const gameKeywords = game.tags ? JSON.parse(game.tags) : []
     const keywords = [
       game.gameSystem,
       game.difficulty,
       game.language,
-      ...(game.tags || []),
+      ...gameKeywords,
       game.isOnline ? 'онлайн' : 'оффлайн',
       game.city || '',
       'D&D',
