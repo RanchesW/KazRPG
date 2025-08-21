@@ -1,12 +1,17 @@
 {
   "/_not-found/page": "app/_not-found/page.js",
-  "/auth/signup/page": "app/auth/signup/page.js",
-  "/page": "app/page.js",
-  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
-  "/auth/signin/page": "app/auth/signin/page.js",
-  "/dashboard/page": "app/dashboard/page.js",
-  "/profile/page": "app/profile/page.js",
-  "/games/page": "app/games/page.js",
+  "/api/auth/signup/route": "app/api/auth/signup/route.js",
   "/api/games/route": "app/api/games/route.js",
-  "/games/[id]/page": "app/games/[id]/page.js"
+  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
+  "/auth/signup/page": "app/auth/signup/page.js",
+  "/auth/signin/page": "app/auth/signin/page.js",
+  "/games/[id]/page": "app/games/[id]/page.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/games/page": "app/games/page.js",
+  "/games/create/page": "app/games/create/page.js",
+  "/health/route": "app/health/route.js",
+  "/page": "app/page.js",
+  "/profile/page": "app/profile/page.js",
+  "/robots.txt/route": "app/robots.txt/route.js",
+  "/sitemap.xml/route": "app/sitemap.xml/route.js"
 }
