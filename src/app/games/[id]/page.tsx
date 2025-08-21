@@ -1,54 +1,40 @@
 // src/app/games/[id]/page.tsx
 import { prisma } from '@/lib/prisma'
-import { notFound, redirect } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import { Calendar, Users, MapPin, Clock, DollarSign, Shield, Globe, BarChart } from 'lucide-react'
 import { getGameSystemLabel, getDifficultyLabel, formatDate, formatPrice } from '@/lib/utils'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { findGameBySlugWithRelations } from '@/lib/slug-queries'
 
 interface GamePageProps {
   params: {
-    id: string // Теперь может быть как ID, так и slug
+    id: string
   }
 }
 
 export default async function GamePage({ params }: GamePageProps) {
   const { id } = params
   
-  // Сначала пытаемся найти по slug
-  let game = await findGameBySlugWithRelations(id)
-  
-  // Если не найдено по slug, пытаемся найти по ID (для обратной совместимости)
-  if (!game) {
-    const gameData = await prisma.games.findUnique({
-      where: { id }
-    })
-    
-    if (gameData) {
-      // Получаем связанные данные
-      const [gm, bookings] = await Promise.all([
-        prisma.users.findUnique({
-          where: { id: gameData.gmId }
-        }),
-        prisma.bookings.findMany({
-          where: { gameId: gameData.id }
-        })
-      ])
-      
-      game = {
-        ...gameData,
-        gm,
-        bookings: bookings || []
-      }
-      
-      // Если игра найдена по ID, но у неё есть slug - редиректим на красивый URL
-      if ((gameData as any).slug) {
-        redirect(`/games/${(gameData as any).slug}`)
+  // Find game by ID only (simplified for local dev)
+  const game = await prisma.game.findUnique({
+    where: { id },
+    include: {
+      gm: {
+        select: {
+          id: true,
+          username: true,
+          firstName: true,
+          lastName: true,
+          avatar: true,
+          rating: true,
+          reviewCount: true,
+          city: true,
+          isVerified: true
+        }
       }
     }
-  }
-
+  })
+  
   if (!game) {
     notFound()
   }

@@ -3,8 +3,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { Prisma } from '@prisma/client'
 import { handleApiError } from '@/lib/errors/handler'
-import { generateGameSlug } from '@/lib/slug'
-import { createGameWithSlug, getGamesWithSlug, isSlugUnique } from '@/lib/slug-queries'
 
 
 export async function GET(request: NextRequest) {
@@ -47,12 +45,26 @@ export async function GET(request: NextRequest) {
 
 
     const [games, total] = await Promise.all([
-      getGamesWithSlug(where, {
+      prisma.game.findMany({
+        where,
         orderBy: { createdAt: 'desc' },
         skip,
-        take: limit
+        take: limit,
+        include: {
+          gm: {
+            select: {
+              id: true,
+              username: true,
+              firstName: true,
+              lastName: true,
+              avatar: true,
+              rating: true,
+              reviewCount: true
+            }
+          }
+        }
       }),
-      prisma.games.count({ where })
+      prisma.game.count({ where })
     ])
 
     return NextResponse.json({
@@ -94,18 +106,6 @@ export async function POST(request: NextRequest) {
       language
     } = body
     
-    // Генерируем уникальный slug
-    // Генерируем уникальный slug
-    const baseSlug = generateGameSlug(title, gameSystem, city)
-    let slug = baseSlug
-    let counter = 1
-    
-    // Проверяем уникальность slug
-    while (!(await isSlugUnique(slug))) {
-      slug = `${baseSlug}-${counter}`
-      counter++
-    }
-    
     const gameData = {
       title,
       description,
@@ -121,11 +121,25 @@ export async function POST(request: NextRequest) {
       address,
       startDate: new Date(startDate),
       language,
-      gmId,
-      slug
+      gmId
     }
     
-    const game = await createGameWithSlug(gameData)
+    const game = await prisma.game.create({
+      data: gameData,
+      include: {
+        gm: {
+          select: {
+            id: true,
+            username: true,
+            firstName: true,
+            lastName: true,
+            avatar: true,
+            rating: true,
+            reviewCount: true
+          }
+        }
+      }
+    })
     
     return NextResponse.json(game, { status: 201 })
     

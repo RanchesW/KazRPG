@@ -33,6 +33,25 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# Build artifacts that should never be committed
+.next/
+node_modules/
+dist/
+build/
+
+# Package manager lock files (standardize on npm)
+yarn.lock
+pnpm-lock.yaml
+
+# Documentation and status files that clutter the repo
+TASK_COMPLETED.md
+ERROR_FIXES_STATUS.md
+BEAUTIFUL_URLS.md
+
+# Development scripts that are environment-specific
+start-dev.sh
+test-signup.sh
+
 # IDE
 .vscode/
 .idea/
